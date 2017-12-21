@@ -1,0 +1,24 @@
+author: EricoGR
+description: Library for the Mongoose-os displaying text on multiple 8x8 led matrices
+type: lib
+version: 1.0
+
+sources:
+  - src
+
+includes:
+  - include
+
+config_schema:
+  - ["ledm", "o", {title: "Led Matrix settings"}]
+  - ["ledm.number_of_displays", "i", 5, {title: "Number of devices/displays"}]
+  - ["ledm.slave_select_pin", "i", 5, {title: "Slave select pin (cs/ss)"}]
+
+libs:
+  - origin: https://github.com/mongoose-os-libs/spi
+
+tags:
+  - cpp
+  - spi
+
+manifest_version: 2017-09-29
