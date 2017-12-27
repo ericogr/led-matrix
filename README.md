@@ -4,12 +4,16 @@ A MongooseOS ledMatrix based on Arduino library
 ## Use
 
 ```
-LedMatrix lm;
-lm.init();
-//lm.setRotation(true);
-lm.setText("My IOT Device...");
-lm.setTextAlignment(TEXT_ALIGN_LEFT_END);
-lm.startAnimatedText(50);
+#include "LedMatrix.h"
+
+using namespace lm;
+
+LedMatrix ledMatrix;
+ledMatrix.init();
+//ledMatrix.setRotation(true);
+ledMatrix.setText("My IOT Device...");
+ledMatrix.setTextAlignment(TEXT_ALIGN_LEFT_END);
+ledMatrix.startAnimatedText(50);
 ```
 
 ## Config Schema

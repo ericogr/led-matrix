@@ -27,6 +27,8 @@
 #define MAX7219_REG_SHUTDOWN     0xC
 #define MAX7219_REG_DISPLAYTEST  0xF
 
+using namespace lm;
+
 void LedMatrix::init() {
     init(mgos_spi_get_global(), mgos_sys_config_get_ledm_number_of_displays(), mgos_sys_config_get_ledm_slave_select_pin());
 }
