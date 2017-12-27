@@ -42,15 +42,15 @@ void LedMatrix::init(uint8_t numberOfDisplays, uint8_t slaveSelectPin) {
 void LedMatrix::init(mgos_spi *spi, uint8_t numberOfDisplays, uint8_t slaveSelectPin) {
     LOG(LL_INFO, ("LedMatrix displays=%d, Slave Pin=%d", numberOfDisplays, slaveSelectPin));
 
-    _SPI = spi;
-    _MyNumberOfDevices = numberOfDisplays;
-    _MySlaveSelectPin = slaveSelectPin;
+    m_SPI = spi;
+    m_MyNumberOfDevices = numberOfDisplays;
+    m_MySlaveSelectPin = slaveSelectPin;
 
-    if (mgos_gpio_set_mode(_MySlaveSelectPin, MGOS_GPIO_MODE_OUTPUT)) {
-        _Columns = new uint8_t[numberOfDisplays * 8];
-        _RotatedCols = new uint8_t[numberOfDisplays * 8];
+    if (mgos_gpio_set_mode(m_MySlaveSelectPin, MGOS_GPIO_MODE_OUTPUT)) {
+        m_Columns = new uint8_t[numberOfDisplays * 8];
+        m_RotatedCols = new uint8_t[numberOfDisplays * 8];
 
-        for (uint8_t device = 0; device < _MyNumberOfDevices; device++) {
+        for (uint8_t device = 0; device < m_MyNumberOfDevices; device++) {
             sendByte(device, MAX7219_REG_SCANLIMIT, 7);   // show all 8 digits
             sendByte(device, MAX7219_REG_DECODEMODE, 0);  // using an led matrix (not digits)
             sendByte(device, MAX7219_REG_DISPLAYTEST, 0); // no display test
@@ -59,22 +59,22 @@ void LedMatrix::init(mgos_spi *spi, uint8_t numberOfDisplays, uint8_t slaveSelec
         }
     }
     else {
-        LOG(LL_ERROR, ("Invalid GPIO for slaveSelectPin: %d", _MySlaveSelectPin));
+        LOG(LL_ERROR, ("Invalid GPIO for slaveSelectPin: %d", m_MySlaveSelectPin));
     }
 }
 
 void LedMatrix::sendByte(const uint8_t device, const uint8_t reg, const uint8_t data) {
-    uint8_t _SPIRegister[8];
-    uint8_t _SPIData[8];
+    uint8_t m_SPIRegister[8];
+    uint8_t m_SPIData[8];
 
-    for (uint8_t i = 0; i < _MyNumberOfDevices; i++) {
-        _SPIData[i] = (uint8_t)0;
-        _SPIRegister[i] = (uint8_t)0;
+    for (uint8_t i = 0; i < m_MyNumberOfDevices; i++) {
+        m_SPIData[i] = (uint8_t)0;
+        m_SPIRegister[i] = (uint8_t)0;
     }
 
     // put our device data into the array
-    _SPIRegister[device] = reg;
-    _SPIData[device] = data;
+    m_SPIRegister[device] = reg;
+    m_SPIData[device] = data;
 
     // now shift out the data
     mgos_spi_txn txn;
@@ -88,20 +88,20 @@ void LedMatrix::sendByte(const uint8_t device, const uint8_t reg, const uint8_t 
     txn.hd.rx_len = 0;
 
     // enable the line
-    mgos_gpio_write(_MySlaveSelectPin, false);
-    for (uint8_t i = 0; i < _MyNumberOfDevices; i++) {
-        tx_data[0] = _SPIRegister[i];
-        tx_data[1] = _SPIData[i];
+    mgos_gpio_write(m_MySlaveSelectPin, false);
+    for (uint8_t i = 0; i < m_MyNumberOfDevices; i++) {
+        tx_data[0] = m_SPIRegister[i];
+        tx_data[1] = m_SPIData[i];
 
-        if (!mgos_spi_run_txn(_SPI, false, &txn)) {
+        if (!mgos_spi_run_txn(m_SPI, false, &txn)) {
             LOG(LL_ERROR, ("SPI transaction failed"));
         }
     }
-    mgos_gpio_write(_MySlaveSelectPin, true);
+    mgos_gpio_write(m_MySlaveSelectPin, true);
 }
 
 void LedMatrix::sendByte (const uint8_t reg, const uint8_t data) {
-    for (uint8_t device = 0; device < _MyNumberOfDevices; device++) {
+    for (uint8_t device = 0; device < m_MyNumberOfDevices; device++) {
         sendByte(device, reg, data);
     }
 }
@@ -111,98 +111,98 @@ void LedMatrix::setIntensity(const uint8_t intensity) {
 }
 
 void LedMatrix::setCharWidth(uint8_t charWidth) {
-    _MyCharWidth = charWidth;
+    m_MyCharWidth = charWidth;
 }
 
 void LedMatrix::setTextAlignment(uint8_t textAlignment) {
-    _TextAlignment = textAlignment;
+    m_TextAlignment = textAlignment;
     calculateTextAlignmentOffset();
 }
 
 void LedMatrix::calculateTextAlignmentOffset() {
-    switch(_TextAlignment) {
+    switch(m_TextAlignment) {
         case TEXT_ALIGN_LEFT:
-            _TextAlignmentOffset = 0;
+            m_TextAlignmentOffset = 0;
             break;
         case TEXT_ALIGN_LEFT_END:
-            _TextAlignmentOffset = _MyNumberOfDevices * 8;
+            m_TextAlignmentOffset = m_MyNumberOfDevices * 8;
             break;
         case TEXT_ALIGN_RIGHT:
-            _TextAlignmentOffset = strlen(_Text) * _MyCharWidth - _MyNumberOfDevices * 8;
+            m_TextAlignmentOffset = strlen(m_Text) * m_MyCharWidth - m_MyNumberOfDevices * 8;
             break;
         case TEXT_ALIGN_RIGHT_END:
-            _TextAlignmentOffset = - strlen(_Text) * _MyCharWidth;
+            m_TextAlignmentOffset = - strlen(m_Text) * m_MyCharWidth;
             break;
     }
 }
 
 void LedMatrix::clear() {
-    for (uint8_t col = 0; col < _MyNumberOfDevices * 8; col++) {
-        _Columns[col] = 0;
+    for (uint8_t col = 0; col < m_MyNumberOfDevices * 8; col++) {
+        m_Columns[col] = 0;
     }
 }
 
 void LedMatrix::commit() {
-    if (_RotationIsEnabled) {
+    if (m_RotationIsEnabled) {
         rotateLeft();
     }
 
-    for (uint8_t col = 0; col < _MyNumberOfDevices * 8; col++) {
-        sendByte(col / 8, col % 8 + 1, _Columns[col]);
+    for (uint8_t col = 0; col < m_MyNumberOfDevices * 8; col++) {
+        sendByte(col / 8, col % 8 + 1, m_Columns[col]);
     }
 }
 
 void LedMatrix::setText(const char *text) {
-    _Text = text;
-    _TextOffset = 0;
+    m_Text = text;
+    m_TextOffset = 0;
     calculateTextAlignmentOffset();
 }
 
 void LedMatrix::setNextText(const char *nextText) {
-    _MyNextText = nextText;
+    m_MyNextText = nextText;
 }
 
 void LedMatrix::scrollTextRight() {
-    _TextOffset = modb((_TextOffset + 1), ((strlen(_Text) + _MyNumberOfDevices + 1) * _MyCharWidth));
+    m_TextOffset = modb((m_TextOffset + 1), ((strlen(m_Text) + m_MyNumberOfDevices + 1) * m_MyCharWidth));
 }
 
 
 void LedMatrix::scrollTextLeft() {
-    _TextOffset = modb((_TextOffset - 1), (strlen(_Text) * _MyCharWidth + _MyNumberOfDevices * 8));
+    m_TextOffset = modb((m_TextOffset - 1), (strlen(m_Text) * m_MyCharWidth + m_MyNumberOfDevices * 8));
 
-    if (_TextOffset == 0 && strlen(_MyNextText) > 0) {
-        _Text = _MyNextText;
-        _MyNextText = "";
+    if (m_TextOffset == 0 && strlen(m_MyNextText) > 0) {
+        m_Text = m_MyNextText;
+        m_MyNextText = "";
         calculateTextAlignmentOffset();
     }
 }
 
 void LedMatrix::oscillateText() {
-    int maxColumns = strlen(_Text) * _MyCharWidth;
-    int maxDisplayColumns = _MyNumberOfDevices * 8;
+    int maxColumns = strlen(m_Text) * m_MyCharWidth;
+    int maxDisplayColumns = m_MyNumberOfDevices * 8;
 
     if (maxDisplayColumns > maxColumns) {
         return;
     }
 
-    if (_TextOffset - maxDisplayColumns == -maxColumns) {
-        _Increment = 1;
+    if (m_TextOffset - maxDisplayColumns == -maxColumns) {
+        m_Increment = 1;
     }
 
-    if (_TextOffset == 0) {
-        _Increment = -1;
+    if (m_TextOffset == 0) {
+        m_Increment = -1;
     }
 
-    _TextOffset += _Increment;
+    m_TextOffset += m_Increment;
 }
 
 void LedMatrix::startAnimatedText(uint32_t interval) {
-    mgos_clear_timer(_TimerId);
-    _TimerId = mgos_set_timer(interval, true, animatedTextLoop, this);
+    mgos_clear_timer(m_TimerId);
+    m_TimerId = mgos_set_timer(interval, true, animatedTextLoop, this);
 }
 
 void LedMatrix::stopAnimatedText() {
-    mgos_clear_timer(_TimerId);
+    mgos_clear_timer(m_TimerId);
 }
 
 void LedMatrix::animatedTextLoop(void *args) {
@@ -217,12 +217,12 @@ void LedMatrix::animatedTextLoop(void *args) {
 void LedMatrix::drawText() {
     int letter;
     int position = 0;
-    for (uint16_t i = 0; i < strlen(_Text); i++) {
-        letter = _Text[i];
+    for (uint16_t i = 0; i < strlen(m_Text); i++) {
+        letter = m_Text[i];
         for (uint8_t col = 0; col < 8; col++) {
-            position = i * _MyCharWidth + col + _TextOffset + _TextAlignmentOffset;
+            position = i * m_MyCharWidth + col + m_TextOffset + m_TextAlignmentOffset;
 
-            if (position >= 0 && position < _MyNumberOfDevices * 8) {
+            if (position >= 0 && position < m_MyNumberOfDevices * 8) {
                 setColumn(position, cp437_font[letter][col]);
             }
         }
@@ -230,27 +230,27 @@ void LedMatrix::drawText() {
 }
 
 void LedMatrix::setColumn(int column, uint8_t value) {
-    if (column < 0 || column >= _MyNumberOfDevices * 8) {
+    if (column < 0 || column >= m_MyNumberOfDevices * 8) {
         return;
     }
-    _Columns[column] = value;
+    m_Columns[column] = value;
 }
 
 void LedMatrix::setPixel(uint8_t x, uint8_t y) {
-    bitWrite(_Columns[x], y, true);
+    bitWrite(m_Columns[x], y, true);
 }
 
 void LedMatrix::rotateLeft() {
-    for (uint8_t deviceNum = 0; deviceNum < _MyNumberOfDevices; deviceNum++) {
+    for (uint8_t deviceNum = 0; deviceNum < m_MyNumberOfDevices; deviceNum++) {
         for (uint8_t posY = 0; posY < 8; posY++) {
             for (uint8_t posX = 0; posX < 8; posX++) {
-                bitWrite(_RotatedCols[8 * (deviceNum) + posY], posX, bitRead(_Columns[8 * (deviceNum) + 7 - posX], posY));
+                bitWrite(m_RotatedCols[8 * (deviceNum) + posY], posX, bitRead(m_Columns[8 * (deviceNum) + 7 - posX], posY));
             }
         }
     }
-    memcpy(_Columns, _RotatedCols, _MyNumberOfDevices * 8);
+    memcpy(m_Columns, m_RotatedCols, m_MyNumberOfDevices * 8);
 }
 
 void LedMatrix::setRotation(bool enabled) {
-    _RotationIsEnabled = enabled;
+    m_RotationIsEnabled = enabled;
 }

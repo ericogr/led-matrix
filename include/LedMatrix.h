@@ -137,26 +137,26 @@ public:
     void setRotation(bool enabled);
 
 private:
-    mgos_spi *_SPI;
+    mgos_spi *m_SPI;
 
-    uint8_t *_Columns;
-    uint8_t *_RotatedCols;
-    uint8_t _SPIRegister[8];
-    uint8_t _SPIData[8];
-    const char *_Text = "";
-    const char *_MyNextText = "";
-    int _TextOffset = 0;
-    int _TextAlignmentOffset = TEXT_ALIGN_LEFT_END;
-    int _Increment = -1;
-    uint8_t _MyNumberOfDevices = 0;
-    uint8_t _MySlaveSelectPin = 0;
-    uint8_t _MyCharWidth = 7;
-    uint8_t _TextAlignment = 1;
-    bool _RotationIsEnabled = false;
-    uint8_t _SPINr;
-    uint8_t _SCK;
-    uint8_t _MOSI;
-    mgos_timer_id _TimerId;
+    uint8_t *m_Columns;
+    uint8_t *m_RotatedCols;
+    uint8_t m_SPIRegister[8];
+    uint8_t m_SPIData[8];
+    const char *m_Text = "";
+    const char *m_MyNextText = "";
+    int m_TextOffset = 0;
+    int m_TextAlignmentOffset = TEXT_ALIGN_LEFT_END;
+    int m_Increment = -1;
+    uint8_t m_MyNumberOfDevices = 0;
+    uint8_t m_MySlaveSelectPin = 0;
+    uint8_t m_MyCharWidth = 7;
+    uint8_t m_TextAlignment = 1;
+    bool m_RotationIsEnabled = false;
+    uint8_t m_SPINr;
+    uint8_t m_SCK;
+    uint8_t m_MOSI;
+    mgos_timer_id m_TimerId;
 
     static void animatedTextLoop(void *args);
     void calculateTextAlignmentOffset();
