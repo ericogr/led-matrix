@@ -155,13 +155,17 @@ void LedMatrix::commit() {
 }
 
 void LedMatrix::setText(const char *text) {
-    m_Text = text;
+    delete[] m_Text;
+    m_Text = new char[strlen(text) + 1];
+    strcpy(m_Text, text);
     m_TextOffset = 0;
     calculateTextAlignmentOffset();
 }
 
 void LedMatrix::setNextText(const char *nextText) {
-    m_MyNextText = nextText;
+    delete[] m_MyNextText;
+    m_MyNextText = new char[strlen(nextText) + 1];
+    strcpy(m_MyNextText, nextText);
 }
 
 void LedMatrix::scrollTextRight() {
@@ -173,8 +177,8 @@ void LedMatrix::scrollTextLeft() {
     m_TextOffset = modb((m_TextOffset - 1), (strlen(m_Text) * m_MyCharWidth + m_MyNumberOfDevices * 8));
 
     if (m_TextOffset == 0 && strlen(m_MyNextText) > 0) {
-        m_Text = m_MyNextText;
-        m_MyNextText = "";
+        setText(m_MyNextText);
+        setNextText("");
         calculateTextAlignmentOffset();
     }
 }

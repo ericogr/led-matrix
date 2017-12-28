@@ -144,8 +144,8 @@ namespace lm {
     uint8_t *m_RotatedCols;
     uint8_t m_SPIRegister[8];
     uint8_t m_SPIData[8];
-    const char *m_Text {""};
-    const char *m_MyNextText {""};
+    char *m_Text = new char[1]();
+    char *m_MyNextText = new char[1]();
     int m_TextOffset {0};
     int m_TextAlignmentOffset {TEXT_ALIGN_LEFT_END};
     int m_Increment {-1};
